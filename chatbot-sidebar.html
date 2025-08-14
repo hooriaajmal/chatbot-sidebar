@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Professional AI Sidebar</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      /* Ensure html and body take full viewport */
+      html,
+      body {
+        height: 100%;
+        overflow: hidden; /* Prevent page-level scrolling */
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "SF Pro Display", system-ui, sans-serif;
+        background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+        color: #ffffff;
+        overflow-x: hidden;
+        font-weight: 400;
+        line-height: 1.5;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* App container takes full viewport height */
+      .app-container {
+        display: flex;
+        height: 100vh; /* Changed from min-height to height */
+        overflow: hidden; /* Prevent container scrolling */
+      }
+      /* Sidebar with proper height constraint */
+      .sidebar {
+        width: 280px;
+        background: rgba(23, 23, 23, 0.95);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        transform: translateX(0);
+        position: relative;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+        height: 100vh; /* Full viewport height */
+        overflow: hidden; /* Prevent sidebar from scrolling as a whole */
+      }
+      .sidebar.collapsed {
+        width: 72px;
+      }
+
+      /* Sidebar content with proper flex layout */
+      .sidebar-content {
+        padding: 8px 16px 8px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 0; /* Allow flex items to shrink */
+      }
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        padding: 0px 5px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+        white-space: nowrap;
+        overflow: hidden;
+        background: transparent; /* removed background */
+        border: none; /* removed all borders */
+        outline: none; /* no focus outline */
+      }
+
+      .sidebar.collapsed .toggle-container {
+        justify-content: center;
+        padding: 0px 12px;
+        margin-bottom: 20px;
+      }
+
+      .toggle-container:hover {
+        background: transparent; /* no hover background */
+        border: none;
+        outline: none;
+      }
+
+      /* Remove click/keyboard focus outlines */
+      .toggle-container:focus,
+      .toggle-container:focus-visible,
+      .toggle-container:active {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      /* Toggle button */
+      .toggle-btn {
+        width: 36px;
+        height: 36px;
+        background: transparent;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 14px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        position: relative;
+        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+        outline: none; /* no focus outline */
+      }
+
+      .toggle-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 10px;
+        background: linear-gradient(
+          135deg,
+          rgba(36, 43, 41, 0.536) 0%,
+          transparent 100%
+        );
+      }
+
+      .toggle-btn:hover {
+        transform: translateY(-1px) scale(0.95);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      }
+
+      .toggle-btn:active {
+        transform: translateY(0) scale(1.02);
+      }
+
+      /* Remove focus outline from toggle-btn */
+      .toggle-btn:focus,
+      .toggle-btn:focus-visible,
+      .toggle-btn:active {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      .sidebar.collapsed .toggle-btn {
+        margin-right: 0;
+      }
+
+      .toggle-btn svg {
+        width: 18px;
+        height: 18px;
+        color: white;
+        transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: 1;
+      }
+
+      .sidebar.collapsed .toggle-btn svg {
+        transform: rotate(180deg);
+      }
+
+      .toggle-text {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        opacity: 1;
+        transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        letter-spacing: -0.02em;
+      }
+
+      .sidebar.collapsed .toggle-text {
+        opacity: 0;
+        width: 0;
+        transform: translateX(-10px);
+      }
+
+      .new-chat-btn {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 8px 5px;
+        margin-bottom: 24px;
+        background: none;
+        border: none;
+        border-radius: 2px;
+        color: #10a37f;
+        font-size: 14px;
+        font-weight: bold; /* Made bold */
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+        white-space: nowrap;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .sidebar.collapsed .new-chat-btn {
+        padding: 9px 12px;
+        justify-content: center;
+      }
+
+      .new-chat-btn:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateY(-2px);
+      }
+
+      .new-chat-btn:active {
+        transform: translateY(-1px);
+      }
+
+      .new-chat-btn svg {
+        margin-right: 12px;
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        transition: all 0.25s ease;
+      }
+
+      .sidebar.collapsed .new-chat-btn svg {
+        margin-right: 0;
+      }
+
+      .new-chat-btn span {
+        opacity: 1;
+        transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+
+      .sidebar.collapsed .new-chat-btn span {
+        opacity: 0;
+        width: 0;
+        transform: translateX(-10px);
+      }
+
+      .nav-links {
+        flex: 1;
+        margin-bottom: 20px;
+        overflow-y: auto;
+        padding-right: 4px;
+        min-height: 0; /* Allow section to shrink and become scrollable */
+      }
+
+      .nav-section {
+        margin-bottom: 32px;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 5px 5px;
+        margin-bottom: 0px;
+        border-radius: 2px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 450;
+        position: relative;
+        overflow: hidden;
+        white-space: nowrap;
+        border: none; /* remove default border */
+      }
+
+      .sidebar.collapsed .nav-item {
+        padding: 10px;
+        justify-content: center;
+      }
+
+      .nav-item::before {
+        display: none; /* remove green strip entirely */
+      }
+
+      .nav-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+        transform: translateX(4px);
+        border: none; /* remove border on hover */
+        outline: none; /* remove outline on hover */
+      }
+
+      .nav-item.active {
+        background: rgba(16, 163, 127, 0.12);
+        color: #ffffff;
+        font-weight: 500;
+        border: none; /* remove border on active */
+        outline: none; /* remove outline on active */
+      }
+
+      .nav-item:focus,
+      .nav-item:focus-visible,
+      .nav-item:active {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      .nav-item svg {
+        width: 20px;
+        height: 20px;
+        margin-right: 14px;
+        opacity: 0.75;
+        transition: all 0.25s ease;
+        flex-shrink: 0;
+      }
+
+      .sidebar.collapsed .nav-item svg {
+        margin-right: 0;
+      }
+
+      .nav-item:hover svg,
+      .nav-item.active svg {
+        opacity: 1;
+        transform: scale(1.05);
+      }
+
+      .nav-item span {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        opacity: 1;
+        transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+
+      .sidebar.collapsed .nav-item span {
+        opacity: 0;
+        width: 0;
+        transform: translateX(-10px);
+      }
+
+      .section-heading {
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 0 20px 12px 20px;
+        margin-bottom: 8px;
+        opacity: 1;
+        transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+      }
+
+      .section-heading::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 20px;
+        right: 20px;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 100%
+        );
+      }
+
+      .sidebar.collapsed .section-heading {
+        opacity: 0;
+        height: 0;
+        padding: 0;
+        margin: 0;
+      }
+
+      .recent-chats {
+        max-height: 320px;
+        overflow-y: auto;
+      }
+
+      .recent-chats::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      .recent-chats::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .recent-chats::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 2px;
+      }
+
+      .recent-chats::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      /* Bottom actions stay fixed at bottom */
+      .bottom-actions {
+        border: none;
+        margin: 0;
+        padding: 0;
+        flex-shrink: 0; /* Don't shrink */
+        margin-top: auto; /* Push to bottom */
+      }
+
+      .user-profile {
+        display: flex;
+        align-items: center;
+        padding: 5px 5px; /* same as nav-item */
+        margin-bottom: 0;
+        border-radius: 2px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 450;
+        position: relative;
+        overflow: hidden;
+        white-space: nowrap;
+        background: transparent; /* nav-item default */
+        border: none; /* remove old border */
+        outline: none; /* no default outline */
+      }
+
+      .sidebar.collapsed .user-profile {
+        padding: 10px;
+        justify-content: center;
+      }
+
+      .user-profile::before {
+        display: none; /* remove green strip entirely */
+      }
+
+      .user-profile:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffffff;
+        transform: translateX(4px);
+        border: none;
+        outline: none;
+      }
+
+      .user-profile.active {
+        background: rgba(16, 163, 127, 0.12);
+        color: #ffffff;
+        font-weight: 500;
+        border: none;
+        outline: none;
+      }
+
+      /* Remove click/keyboard focus borders */
+      .user-profile:focus,
+      .user-profile:focus-visible,
+      .user-profile:active {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      /* Avatar behaves like icon in nav-item */
+      .user-avatar {
+        width: 20px;
+        height: 20px;
+        margin-right: 14px;
+        opacity: 0.75;
+        transition: all 0.25s ease;
+        flex-shrink: 0;
+        border-radius: 50%; /* now fully round */
+        background: #10a37f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        font-size: 12px;
+      }
+
+      .sidebar.collapsed .user-avatar {
+        margin-right: 0;
+      }
+
+      .user-profile:hover .user-avatar,
+      .user-profile.active .user-avatar {
+        opacity: 1;
+        transform: scale(1.05);
+      }
+
+      /* Info text behaves like span in nav-item */
+      .user-info {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        opacity: 1;
+        transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+
+      .sidebar.collapsed .user-info {
+        opacity: 0;
+        width: 0;
+        transform: translateX(-10px);
+      }
+
+      .user-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #ffffff;
+        margin-bottom: 2px;
+        letter-spacing: -0.01em;
+      }
+
+      .user-status {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 400;
+      }
+
+      .main-content {
+        flex: 1;
+        padding: 32px;
+        background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+        transition: margin-left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        height: 100vh; /* Full viewport height */
+        overflow-y: auto; /* Make main content scrollable */
+        overflow-x: hidden;
+      }
+
+      .sidebar.collapsed + .main-content {
+        margin-left: 0;
+      }
+
+      .content-placeholder {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 0;
+      }
+
+      .content-placeholder h1 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 24px;
+        background: linear-gradient(
+          135deg,
+          #10a37f 0%,
+          #1a7f64 50%,
+          #667eea 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+
+      .content-placeholder p {
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        margin-bottom: 20px;
+        font-size: 16px;
+        font-weight: 400;
+      }
+
+      .feature-list {
+        display: grid;
+        gap: 12px;
+        margin: 24px 0;
+      }
+
+      .feature-item {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.25s ease;
+      }
+
+      .feature-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .feature-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 12px;
+        opacity: 0.8;
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          height: 100vh;
+          width: 280px !important;
+          z-index: 1000;
+          box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+          transform: translateX(0);
+          overflow: hidden;
+        }
+
+        .sidebar.collapsed {
+          transform: translateX(-100%);
+        }
+
+        .sidebar.collapsed .toggle-container,
+        .sidebar.collapsed .new-chat-btn,
+        .sidebar.collapsed .nav-item,
+        .sidebar.collapsed .user-profile {
+          padding: 16px 20px;
+          justify-content: flex-start;
+        }
+
+        .sidebar.collapsed .toggle-btn {
+          margin-right: 14px;
+        }
+
+        .sidebar.collapsed .new-chat-btn svg,
+        .sidebar.collapsed .nav-item svg {
+          margin-right: 12px;
+        }
+
+        .sidebar.collapsed .user-avatar {
+          margin-right: 14px;
+        }
+
+        .sidebar.collapsed .toggle-text,
+        .sidebar.collapsed .new-chat-btn span,
+        .sidebar.collapsed .nav-item span,
+        .sidebar.collapsed .user-info,
+        .sidebar.collapsed .section-heading {
+          opacity: 1;
+          width: auto;
+          height: auto;
+          padding: inherit;
+          margin: inherit;
+          transform: translateX(0);
+        }
+
+        .main-content {
+          padding: 100px 20px 32px 20px;
+          margin-left: 0;
+          height: 100vh;
+          overflow-y: auto;
+        }
+
+        .overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(4px);
+          z-index: 999;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .overlay.active {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        .content-placeholder h1 {
+          font-size: 28px;
+        }
+
+        /* Mobile toggle button */
+        .mobile-toggle {
+          position: fixed;
+          top: 20px;
+          left: 20px;
+          width: 44px;
+          height: 44px;
+          background: rgba(23, 23, 23, 0.95);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          cursor: pointer;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+          z-index: 1001;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .mobile-toggle:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.15);
+          transform: translateY(-1px) scale(1.05);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .mobile-toggle svg {
+          width: 20px;
+          height: 20px;
+          color: #ffffff;
+        }
+
+        .sidebar.collapsed ~ .mobile-toggle {
+          display: flex;
+        }
+      }
+
+      /* Enhanced scrollbar styling */
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 3px;
+      }
+
+      .sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      /* Loading animation */
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .nav-item,
+      .user-profile,
+      .toggle-container {
+        animation: slideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+      }
+
+      .nav-item:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .nav-item:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+      .nav-item:nth-child(4) {
+        animation-delay: 0.3s;
+      }
+      .nav-item:nth-child(5) {
+        animation-delay: 0.4s;
+      }
+      .nav-item:nth-child(6) {
+        animation-delay: 0.5s;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="overlay" id="overlay"></div>
+
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+          <!-- Toggle Button (replacing logo) -->
+          <div class="toggle-container">
+            <button class="toggle-btn" id="toggleBtn">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+            <div class="toggle-text">Menu</div>
+          </div>
+
+          <!-- New Chat Button -->
+          <button class="new-chat-btn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>New Chat</span>
+          </button>
+
+          <!-- Navigation Links -->
+          <nav class="nav-links">
+            <!-- Main Navigation -->
+            <div class="nav-section">
+              <a href="#" class="nav-item">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                  ></path>
+                </svg>
+                <span>Chats</span>
+              </a>
+              <a href="#" class="nav-item">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                <span>Knowledge Base</span>
+              </a>
+              <a href="#" class="nav-item">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="9" cy="9" r="2" />
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                </svg>
+                <span>Projects</span>
+              </a>
+              <a href="#" class="nav-item">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  ></path>
+                  <polyline points="14,2 14,8 20,8"></polyline>
+                </svg>
+                <span>Documents</span>
+              </a>
+              <a href="#" class="nav-item">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                  ></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>
+                <span>Templates</span>
+              </a>
+            </div>
+
+            <!-- Recent Chats Section -->
+            <div class="nav-section">
+              <div class="section-heading">Recent Activity</div>
+              <div class="recent-chats">
+                <a href="#" class="nav-item active">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                    ></path>
+                  </svg>
+                  <span>UI/UX Design System</span>
+                </a>
+                <a href="#" class="nav-item">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                    ></path>
+                  </svg>
+                  <span>React Architecture Review</span>
+                </a>
+                <a href="#" class="nav-item">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                    ></path>
+                  </svg>
+                  <span>API Documentation</span>
+                </a>
+                <a href="#" class="nav-item">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                    ></path>
+                  </svg>
+                  <span>Database Optimization</span>
+                </a>
+                <a href="#" class="nav-item">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                    ></path>
+                  </svg>
+                  <span>Security Best Practices</span>
+                </a>
+              </div>
+            </div>
+          </nav>
+
+          <!-- Bottom Actions -->
+          <div class="bottom-actions">
+            <div class="user-profile">
+              <div class="user-avatar">H</div>
+              <div class="user-info">
+                <div class="user-name">Hooria Ajmal</div>
+                <div class="user-status">Professional Plan</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <div class="content-placeholder">
+          <h1>Professional AI Interface</h1>
+          <p>
+            Experience the next level of professional design with this enhanced
+            sidebar featuring premium UI/UX elements and sophisticated
+            interactions.
+          </p>
+
+          <div class="feature-list">
+            <div class="feature-item">
+              <div class="feature-icon">✨</div>
+              <span>Glassmorphism design with backdrop blur effects</span>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🎯</div>
+              <span>Enhanced micro-interactions and hover states</span>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">📱</div>
+              <span>Responsive design with mobile-first approach</span>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🎨</div>
+              <span>Premium color gradients and visual hierarchy</span>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">⚡</div>
+              <span>Smooth animations with cubic-bezier easing</span>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">🔍</div>
+              <span>Improved typography and spacing consistency</span>
+            </div>
+          </div>
+
+          <p>
+            Click the toggle button to experience the smooth collapse animation.
+            The sidebar adapts beautifully to different screen sizes while
+            maintaining its professional appearance.
+          </p>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const sidebar = document.getElementById("sidebar");
+      const toggleBtn = document.getElementById("toggleBtn");
+      const overlay = document.getElementById("overlay");
+      const navItems = document.querySelectorAll(".nav-item");
+
+      // Toggle sidebar with enhanced animation
+      toggleBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("collapsed");
+
+        // Handle mobile overlay
+        if (window.innerWidth <= 768) {
+          if (sidebar.classList.contains("collapsed")) {
+            overlay.classList.remove("active");
+          } else {
+            overlay.classList.add("active");
+          }
+        }
+
+        // Add ripple effect
+        addRippleEffect(toggleBtn);
+      });
+
+      // Close sidebar when clicking overlay (mobile)
+      overlay.addEventListener("click", () => {
+        if (window.innerWidth <= 768) {
+          sidebar.classList.add("collapsed");
+          overlay.classList.remove("active");
+        }
+      });
+
+      // Enhanced nav item interactions
+      navItems.forEach((item, index) => {
+        item.addEventListener("click", (e) => {
+          e.preventDefault();
+
+          // Remove active class from all items
+          navItems.forEach((navItem) => navItem.classList.remove("active"));
+
+          // Add active class to clicked item
+          item.classList.add("active");
+
+          // Add ripple effect
+          addRippleEffect(item);
+
+          // Close sidebar on mobile after selection
+          if (window.innerWidth <= 768) {
+            setTimeout(() => {
+              sidebar.classList.add("collapsed");
+              overlay.classList.remove("active");
+            }, 200);
+          }
+        });
+
+        // Add staggered animation delay
+        item.style.animationDelay = `${0.1 * index}s`;
+      });
+
+      // Ripple effect function
+      function addRippleEffect(element) {
+        const ripple = document.createElement("span");
+        const rect = element.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = rect.width / 2;
+        const y = rect.height / 2;
+
+        ripple.style.width = ripple.style.height = size + "px";
+        ripple.style.left = x - size / 2 + "px";
+        ripple.style.top = y - size / 2 + "px";
+        ripple.style.position = "absolute";
+        ripple.style.borderRadius = "50%";
+        ripple.style.background = "rgba(255, 255, 255, 0.1)";
+        ripple.style.transform = "scale(0)";
+        ripple.style.animation = "ripple 0.6s linear";
+        ripple.style.pointerEvents = "none";
+
+        element.style.position = "relative";
+        element.style.overflow = "hidden";
+        element.appendChild(ripple);
+
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      }
+
+      // Add ripple animation CSS
+      const rippleCSS = `
+            @keyframes ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+
+      const style = document.createElement("style");
+      style.textContent = rippleCSS;
+      document.head.appendChild(style);
+
+      // Handle window resize with smooth transitions
+      window.addEventListener("resize", () => {
+        if (window.innerWidth > 768) {
+          overlay.classList.remove("active");
+        } else {
+          if (!sidebar.classList.contains("collapsed")) {
+            overlay.classList.add("active");
+          }
+        }
+      });
+
+      // Enhanced keyboard navigation
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (
+            window.innerWidth <= 768 &&
+            !sidebar.classList.contains("collapsed")
+          ) {
+            sidebar.classList.add("collapsed");
+            overlay.classList.remove("active");
+          }
+        }
+
+        // Toggle sidebar with Ctrl+B
+        if (e.ctrlKey && e.key === "b") {
+          e.preventDefault();
+          toggleBtn.click();
+        }
+      });
+
+      // Initialize mobile state
+      function initializeMobileState() {
+        if (window.innerWidth <= 768) {
+          sidebar.classList.add("collapsed");
+          overlay.classList.remove("active");
+        }
+      }
+
+      // Smooth scroll behavior for nav links
+      function smoothScrollToSection(target) {
+        const element = document.querySelector(target);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }
+
+      // Enhanced loading animation
+      function initializeAnimations() {
+        const elements = document.querySelectorAll(
+          ".nav-item, .logo-container, .user-profile"
+        );
+        elements.forEach((el, index) => {
+          el.style.opacity = "0";
+          el.style.transform = "translateX(-20px)";
+
+          setTimeout(() => {
+            el.style.transition = "all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)";
+            el.style.opacity = "1";
+            el.style.transform = "translateX(0)";
+          }, 100 * index);
+        });
+      }
+
+      // Initialize on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        initializeMobileState();
+        initializeAnimations();
+
+        // Add focus styles for accessibility
+        const focusableElements = document.querySelectorAll(
+          "button, a, [tabindex]"
+        );
+        focusableElements.forEach((el) => {
+          el.addEventListener("focus", () => {
+            el.style.outline = "2px solid rgba(16, 163, 127, 0.5)";
+            el.style.outlineOffset = "2px";
+          });
+
+          el.addEventListener("blur", () => {
+            el.style.outline = "none";
+          });
+        });
+      });
+
+      // Performance optimization: debounce resize events
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      const debouncedResize = debounce(() => {
+        initializeMobileState();
+      }, 250);
+
+      window.addEventListener("resize", debouncedResize);
+
+      // Add hover sound effect simulation (visual feedback)
+      navItems.forEach((item) => {
+        item.addEventListener("mouseenter", () => {
+          item.style.transform = "translateX(6px) scale(1.02)";
+        });
+
+        item.addEventListener("mouseleave", () => {
+          if (!item.classList.contains("active")) {
+            item.style.transform = "translateX(0) scale(1)";
+          }
+        });
+      });
+
+      // Progressive enhancement for older browsers
+      if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.style.opacity = "1";
+              entry.target.style.transform = "translateY(0)";
+            }
+          });
+        });
+
+        const hiddenElements = document.querySelectorAll(".feature-item");
+        hiddenElements.forEach((el) => observer.observe(el));
+      }
+    </script>
+  </body>
+</html>
