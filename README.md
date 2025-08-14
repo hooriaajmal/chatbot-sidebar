@@ -15,7 +15,7 @@ A clean, responsive, single‑file HTML template featuring a collapsible sidebar
 
 ---
 
-![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+![alt text](https://github.com/hooriaajmal/chatbot-sidebar/blob/main/Screenshot%202025-08-14%20190023.png?raw=true)
 
 
 ### Project Structure
