@@ -15,9 +15,6 @@ A clean, responsive, single‑file HTML template featuring a collapsible sidebar
 
 ---
 
-### Video Demo
-[Video Demo](https://github.com/hooriaajmal/chatbot-sidebar/blob/main/Recording%202025-08-14%20194423.mp4)
-
 ### Project Structure
 ```
 ─ chatbot-sidebar.html   # Main HTML (includes inline styles + scripts)
