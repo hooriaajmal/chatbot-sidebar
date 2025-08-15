@@ -26,6 +26,9 @@ A clean, responsive, single‑file HTML template featuring a collapsible sidebar
 ```
 ─ chatbot-sidebar.html   # Main HTML (includes inline styles + scripts)
 ─ README.md              # This documentation
+─ chatbot_sidebar.png
+─ collapsable_sidebar.mp4
+─ collapsed_sidebar.png
 ```
 
 ---
