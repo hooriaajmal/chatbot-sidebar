@@ -582,6 +582,39 @@
         opacity: 0.8;
       }
 
+      /* Mobile toggle button - FIXED */
+      .mobile-toggle {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        width: 44px;
+        height: 44px;
+        background: rgba(23, 23, 23, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: 1001;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .mobile-toggle:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.15);
+        transform: translateY(-1px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .mobile-toggle svg {
+        width: 20px;
+        height: 20px;
+        color: #ffffff;
+      }
+
       @media (max-width: 768px) {
         .sidebar {
           position: fixed;
@@ -634,7 +667,7 @@
         }
 
         .main-content {
-          padding: 100px 20px 32px 20px;
+          padding: 80px 20px 32px 20px;
           margin-left: 0;
           height: 100vh;
           overflow-y: auto;
@@ -663,41 +696,14 @@
           font-size: 28px;
         }
 
-        /* Mobile toggle button */
+        /* Show mobile toggle when sidebar is collapsed on mobile */
         .mobile-toggle {
-          position: fixed;
-          top: 20px;
-          left: 20px;
-          width: 44px;
-          height: 44px;
-          background: rgba(23, 23, 23, 0.95);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          cursor: pointer;
-          display: none;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-          z-index: 1001;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .mobile-toggle:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.15);
-          transform: translateY(-1px) scale(1.05);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .mobile-toggle svg {
-          width: 20px;
-          height: 20px;
-          color: #ffffff;
-        }
-
-        .sidebar.collapsed ~ .mobile-toggle {
           display: flex;
+        }
+
+        /* Hide mobile toggle when sidebar is open */
+        .sidebar:not(.collapsed) ~ .mobile-toggle {
+          display: none;
         }
       }
 
@@ -892,21 +898,6 @@
                       d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
                     ></path>
                   </svg>
-                  <span>UI/UX Design System</span>
-                </a>
-                <a href="#" class="nav-item">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-                    ></path>
-                  </svg>
                   <span>React Architecture Review</span>
                 </a>
                 <a href="#" class="nav-item">
@@ -971,6 +962,22 @@
         </div>
       </aside>
 
+      <!-- Mobile Toggle Button - ADDED -->
+      <button class="mobile-toggle" id="mobileToggle">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
       <main class="main-content">
         <div class="content-placeholder">
           <h1>Professional AI Interface</h1>
@@ -1019,11 +1026,12 @@
     <script>
       const sidebar = document.getElementById("sidebar");
       const toggleBtn = document.getElementById("toggleBtn");
+      const mobileToggle = document.getElementById("mobileToggle");
       const overlay = document.getElementById("overlay");
       const navItems = document.querySelectorAll(".nav-item");
 
-      // Toggle sidebar with enhanced animation
-      toggleBtn.addEventListener("click", () => {
+      // Toggle sidebar function
+      function toggleSidebar() {
         sidebar.classList.toggle("collapsed");
 
         // Handle mobile overlay
@@ -1034,9 +1042,18 @@
             overlay.classList.add("active");
           }
         }
+      }
 
-        // Add ripple effect
+      // Desktop toggle button
+      toggleBtn.addEventListener("click", () => {
+        toggleSidebar();
         addRippleEffect(toggleBtn);
+      });
+
+      // Mobile toggle button
+      mobileToggle.addEventListener("click", () => {
+        toggleSidebar();
+        addRippleEffect(mobileToggle);
       });
 
       // Close sidebar when clicking overlay (mobile)
@@ -1141,7 +1158,7 @@
         // Toggle sidebar with Ctrl+B
         if (e.ctrlKey && e.key === "b") {
           e.preventDefault();
-          toggleBtn.click();
+          toggleSidebar();
         }
       });
 
@@ -1251,3 +1268,4 @@
     </script>
   </body>
 </html>
+                
