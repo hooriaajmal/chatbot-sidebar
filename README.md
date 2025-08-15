@@ -17,7 +17,11 @@ A clean, responsive, single‑file HTML template featuring a collapsible sidebar
 
 ![alt text](https://github.com/hooriaajmal/chatbot-sidebar/blob/main/chatbot_sidebar.png?raw=true)
 
+---
+### Collapsed 
+![alt text](https://github.com/hooriaajmal/chatbot-sidebar/blob/main/collapsed_sidebar.png?raw=true)
 
+---
 ### Project Structure
 ```
 ─ chatbot-sidebar.html   # Main HTML (includes inline styles + scripts)
